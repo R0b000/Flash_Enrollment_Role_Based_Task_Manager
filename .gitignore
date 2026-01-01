@@ -1,0 +1,40 @@
+# ========================
+# Laravel backend ignores
+# ========================
+
+/vendor/                 # Composer dependencies
+/node_modules/           # Node dependencies (if you run npm inside Laravel)
+.env                     # Environment variables
+/.idea/                  # IDE files (PhpStorm, etc.)
+/.phpunit.result.cache
+/storage/*.key           # Encryption keys
+/storage/*.log
+/storage/framework/*
+/storage/app/public      # Optional: if storing public uploads locally
+/public/hot
+/public/storage
+
+# Laravel Mix / Vite build output (if built in backend)
+# /public/js/
+/public/css/
+/mix-manifest.json        # If using Laravel Mix
+
+# Composer lock and packages (optional)
+/composer.lock           
+
+# ========================
+# React Vite frontend ignores
+# ========================
+
+/frontend/node_modules/   # Frontend dependencies
+/frontend/dist/           # Production build folder
+/frontend/.env            # Frontend env variables
+/frontend/.vite/          # Vite cache
+
+# ========================
+# OS / IDE / Misc
+# ========================
+.DS_Store
+Thumbs.db
+*.log
+*.swp
