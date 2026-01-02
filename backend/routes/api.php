@@ -15,6 +15,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [function (Request $request) {
         return $request->user();
     }]);
+    Route::get('/allUsers', [AuthController::class,'allUsers']);
     Route::post('/logout', [AuthController::class,'logout']);
     Route::get('/tasks', [TaskController::class,'list']);
     Route::post('/tasks', [TaskController::class,'create']);

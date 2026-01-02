@@ -4,9 +4,11 @@ import { LoginDTO, type loginProps } from "./auth.config";
 import { yupResolver } from "@hookform/resolvers/yup";
 import authSvc from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth.context";
 
 const Login = () => {
     const navigate = useNavigate();
+    const {setUser} = useAuth()
 
     const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm({
         defaultValues: {
@@ -19,11 +21,12 @@ const Login = () => {
     const submitForm = async (data: loginProps) => {
         try {
             const response = await authSvc.login(data);
-            console.log(response)
             if(response.user.role === 'admin'){
                 navigate('/admin')
+                setUser(response.user)
             } else if (response.user.role === 'user') {
                 navigate('/user')
+                setUser(response.user)
             }
         } catch (error) {
             console.log( error)

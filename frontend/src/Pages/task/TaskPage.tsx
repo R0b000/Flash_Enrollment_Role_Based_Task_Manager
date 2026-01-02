@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import taskSvc from "../../service/task.service"
-import { Button, Checkbox, Empty, Input, Modal, Pagination } from "antd"
+import { Button, Checkbox, Empty, Input, Modal, Pagination, Select } from "antd"
 import type { CheckboxProps } from 'antd';
 import { AiOutlineDelete, AiOutlineEdit, AiOutlineEyeInvisible } from "react-icons/ai";
 import { createTaskDTO, type createTaskProps, type userDataProps } from "./task.config";
@@ -8,6 +8,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import TextArea from "antd/es/input/TextArea";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useAuth } from "../../context/auth.context";
+import authSvc from "../../service/auth.service";
 
 const onChange: CheckboxProps['onChange'] = (e) => {
     console.log(e.target.checked)
@@ -22,12 +24,16 @@ const TaskPage = () => {
     const editId = searchParams.get('id')
     const [createClick, setCreateClick] = useState<boolean>(false);
     const [seeClick, setSeeClick] = useState<boolean>(false)
+    const [userIdName, setUserIdName] = useState<any>(null);
     const navigate = useNavigate();
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
         total: 0,
     })
+    const { user } = useAuth();
+
+    console.log(user)
 
     const {
         control,
@@ -58,7 +64,7 @@ const TaskPage = () => {
 
     const fetchUserData = useCallback(async (page: number | 1) => {
         try {
-            const response = await taskSvc.list(page)
+            const response = await taskSvc.list(page, null)
             setUserData(response)
             setPagination({
                 current: response.data.current_page,
@@ -76,7 +82,7 @@ const TaskPage = () => {
     const handleCheckBoxClick = async (e: any, id: string) => {
         e.stopPropagation();
 
-        const completedValue = e.target.checked ? 1 : 0; 
+        const completedValue = e.target.checked ? 1 : 0;
         await taskSvc.update(id, { completed: completedValue } as any);
 
         fetchUserData(pagination.current);
@@ -107,6 +113,11 @@ const TaskPage = () => {
         setSeeClick(true)
     }
 
+    const handlePageChange = (page: number) => {
+        setPagination(prev => ({ ...prev, current: page }));
+        fetchUserData(page);
+    };
+
     useEffect(() => {
         fetchUserData(pagination.current);
     }, []);
@@ -118,15 +129,64 @@ const TaskPage = () => {
         }
     }, [pagination.current, submitted])
 
-    const handlePageChange = (page: number) => {
-        setPagination(prev => ({ ...prev, current: page }));
-        fetchUserData(page);
-    };
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (user?.role === 'admin') {
+                try {
+                    const res = await authSvc.allUsers();
+                    setUserIdName(res);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        };
+        fetchUsers();
+    }, [user]);
+
+    let userArr = []
+
+    if (userIdName) {
+        //@ts-ignore
+        userArr = userIdName.users.map(items => {
+            return {
+                value: items.id,
+                label: items.name
+            }
+        })
+    }
+
+    const filterUsers = useCallback(async (id: string) => {
+        try {
+            const response = await taskSvc.list(pagination.current, id)
+            setUserData(response)
+            setPagination({
+                current: response.data.current_page,
+                pageSize: response.data.per_page,
+                total: response.data.total,
+            })
+        } catch (error) {
+            throw error
+        }
+    }, [])
 
     return (
         <>
             {!isLoading &&
                 <div className="flex flex-col w-full h-full justify-center items-center">
+                    {user?.role === 'admin' &&
+                        <>
+                            <div className="flex gap-5">
+                                Filter by User
+                                <Select
+                                    options={userArr}
+                                    placeholder="Select a user"
+                                    style={{ width: 200 }}
+                                    onChange={filterUsers}
+                                    allowClear
+                                />
+                            </div>
+                        </>
+                    }
                     <div className="flex flex-col w-full h-full items-center justify-between gap-2 md:w-[80%]">
                         {userData?.data?.data && userData.data.data.length > 0 ?
                             (userData.data.data.map((items, index) => (
@@ -224,7 +284,7 @@ const TaskPage = () => {
                                         <span className="text-gray-700 text-sm mb-1">
                                             Enter your description
                                         </span>
-                                        <TextArea {...field} disabled={seeClick} placeholder="Enter your description" style={{height: '200px', resize: 'none'}}/>
+                                        <TextArea {...field} maxLength={500} placeholder="Enter your description" style={{ height: '200px', resize: 'none' }} />
                                         {errors.description?.message && (
                                             <span className="text-sm text-red-500 mt-1">
                                                 {errors.description.message}

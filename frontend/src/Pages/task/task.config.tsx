@@ -39,5 +39,5 @@ export interface createTaskProps {
 
 export const createTaskDTO = yup.object({
     title: yup.string().required(),
-    description: yup.string().max(500).optional().nullable(),
+    description: yup.string().max(500, 'Description cannot exceed 500 characters').optional().nullable(),
 })

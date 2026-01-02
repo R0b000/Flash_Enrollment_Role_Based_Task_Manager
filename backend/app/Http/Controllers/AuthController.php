@@ -54,7 +54,8 @@ class AuthController extends Controller
         }
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         if ($request->user()) {
 
             $request->user()->tokens()->delete();
@@ -68,4 +69,28 @@ class AuthController extends Controller
         ], 401);
     }
 
+    public function allUsers()
+    {
+        try {
+            $user = Auth::user();
+
+            // Only admin will use this
+            if ($user->role !== 'admin') {
+                return response()->json([
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            $users = User::all();
+
+            return response()->json([
+                'users' => $users
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

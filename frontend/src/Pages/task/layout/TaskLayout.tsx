@@ -1,18 +1,29 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../../component/Header";
 import Footer from "../../component/Footer";
 import { RiStickyNoteAddFill } from "react-icons/ri";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input, Modal, Button } from "antd";
 import { Controller, useForm } from "react-hook-form";
 import { createTaskDTO, type createTaskProps } from "../task.config";
 import { yupResolver } from "@hookform/resolvers/yup";
 import TextArea from "antd/es/input/TextArea";
 import taskSvc from "../../../service/task.service";
+import TaskPage from "../TaskPage";
+import { useAuth } from "../../../context/auth.context";
 
 const TaskLayout = () => {
     const [createClick, setCreateClick] = useState<boolean>(false);
     const navigate = useNavigate();
+    const {user} = useAuth();
+
+    useEffect(() => {
+        if(user?.role === 'admin') {
+            navigate('/admin')
+        } else {
+            navigate('/user')
+        }
+    }, [])
 
     const {
         control,
@@ -31,7 +42,7 @@ const TaskLayout = () => {
         try {
             await taskSvc.create(data);
             setCreateClick(false);
-            reset(); 
+            reset();
             navigate('?submit=true')
         } catch (error) {
             console.error(error);
@@ -42,14 +53,17 @@ const TaskLayout = () => {
         <div className="flex flex-col min-h-svh justify-between">
             <div className="flex flex-col w-full h-full p-2 gap-2">
                 <Header />
-                <div className="flex gap-2 w-full h-auto items-center justify-between p-2 px-5">
+                <div className="flex gap-2 w-full h-auto items-center justify-between p-2 px-10">
                     <p className="flex font-semibold text-lg">Tasks</p>
-                    <RiStickyNoteAddFill
-                        onClick={() => setCreateClick(true)}
-                        className="text-3xl md:text-4xl text-teal-500 hover:scale-105 cursor-pointer"
-                    />
+                    <div className="flex h-full items-center ">
+                        CREATE -
+                        <RiStickyNoteAddFill
+                            onClick={() => setCreateClick(true)}
+                            className="text-3xl md:text-4xl text-teal-500 hover:scale-105 cursor-pointer"
+                        />
+                    </div>
                 </div>
-                <Outlet />
+                <TaskPage />
             </div>
 
             <Footer />
@@ -87,7 +101,7 @@ const TaskLayout = () => {
                                 <span className="text-gray-700 text-sm mb-1">
                                     Enter your description
                                 </span>
-                                <TextArea {...field} placeholder="Enter your description" style={{height: '200px', resize: 'none'}}/>
+                                <TextArea {...field} maxLength={500} placeholder="Enter your description" style={{ height: '200px', resize: 'none' }} />
                                 {errors.description?.message && (
                                     <span className="text-sm text-red-500 mt-1">
                                         {errors.description.message}

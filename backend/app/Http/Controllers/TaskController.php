@@ -14,37 +14,36 @@ class TaskController extends Controller
     public function list()
     {
         try {
-            $page = request()->get("Page", 1);
+            $page = request()->get('Page', 1);
+            $filterUserId = request()->get('user_id'); 
 
             $user = Auth::user();
 
-            if ($user->role === 'admin') {
-                $data = Task::paginate(10, ['*'], 'page', $page);
+            $query = Task::query();
 
-                 if(!$data) {
-                    return response()->json([
-                        'message' => 'No data found.'
-                    ], 200);
-                }
-
-                return response()->json([
-                    'data' => $data,
-                    'message' => 'Data fetched Successfully',
-                ]);
-            } else {
-                $data = Task::where('user_id', $user->id)->paginate(10, ['*'], 'page', $page);
-
-                if(!$data) {
-                    return response()->json([
-                        'message' => 'No data found create one'
-                    ], 200);
-                }
-
-                return response()->json([
-                    'data' => $data,
-                    'message' => 'Data fetched Successfully',
-                ]);
+            if ($user->role !== 'admin') {
+                $query->where('user_id', $user->id);
             }
+
+            if ($filterUserId && $user->role === 'admin') {
+                $query->where('user_id', $filterUserId);
+            }
+
+            $data = $query->paginate(10, ['*'], 'Page', $page);
+
+            // Check if data exists
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'message' => $user->role === 'admin'
+                        ? 'No data found.'
+                        : 'No data found, create one.'
+                ], 200);
+            }
+
+            return response()->json([
+                'data' => $data,
+                'message' => 'Data fetched successfully',
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage(),
@@ -127,28 +126,28 @@ class TaskController extends Controller
 
             if ($user->id === $data->user_id  || $user->role === 'admin') {
                 $body = $request->validate([
-                    'title'=>'nullable|min:3',
-                    'description'=> 'nullable|max:50',
-                    'completed'=> 'nullable|boolean',
+                    'title' => 'nullable|min:3',
+                    'description' => 'nullable|max:50',
+                    'completed' => 'nullable|boolean',
                 ]);
 
-                if(isSet($body['title'])) {
+                if (isset($body['title'])) {
                     $data->title = $body['title'];
                 };
 
-                if(isSet($body['description'])) {  
+                if (isset($body['description'])) {
                     $data->description = $body['description'];
                 };
 
-                if(isSet($body['completed'])) {
+                if (isset($body['completed'])) {
                     $data->completed = $body['completed'];
                 };
 
                 $data->save();
 
                 return response()->json([
-                    'message'=>'Updated successfully',
-                    'data'=> $data,
+                    'message' => 'Updated successfully',
+                    'data' => $data,
                 ]);
             }
         } catch (\Exception $e) {
@@ -167,15 +166,15 @@ class TaskController extends Controller
             $user = Auth::user();
             $data = Task::find($id);
 
-            if(!$data) {
+            if (!$data) {
                 return response()->json([
-                    'message'=>'No data found or deleted already.'
+                    'message' => 'No data found or deleted already.'
                 ], 404);
             };
 
-            if($user->id !== $data->user_id) {
+            if ($user->id !== $data->user_id) {
                 return response()->json([
-                    'message'=>'Unauthorized delete operation',
+                    'message' => 'Unauthorized delete operation',
                 ], 403);
             }
 
@@ -187,7 +186,7 @@ class TaskController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error'=>$e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }

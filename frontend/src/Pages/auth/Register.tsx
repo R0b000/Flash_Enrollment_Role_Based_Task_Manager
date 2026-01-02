@@ -21,7 +21,7 @@ const Register = () => {
     const submitForm = async (data: registerProps) => {
         try {
             await authSvc.register(data);
-            navigate('/home')
+            navigate('/auth/login')
         } catch (error) {
             console.log(error)
             throw error

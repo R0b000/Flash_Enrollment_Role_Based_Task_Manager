@@ -30,9 +30,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<userProps | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
+    useEffect(() => {
         if (!token) {
             setIsLoading(false);
             return;
@@ -51,7 +51,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
 
         fetchUser();
-    }, []);
+    }, [token]);
 
     if (isLoading) return null; // or loader component
 

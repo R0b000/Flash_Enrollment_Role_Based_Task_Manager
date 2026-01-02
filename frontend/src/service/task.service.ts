@@ -2,10 +2,12 @@ import axiosConfig from "../config/Axios"
 import type { createTaskProps, userDataProps } from "../Pages/task/task.config"
 
 class TaskService {
-    list = async (page: number | 1) => {
-        console.log(page)
+    list = async (page: number | 1, user_id: string | null) => {
         const response = await axiosConfig.get('/tasks', {
-            params: {Page: page}
+            params: {
+                Page: page,
+                user_id: user_id
+            }
         })
         return response.data
     } 

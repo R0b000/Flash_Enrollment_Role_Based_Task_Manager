@@ -14,6 +14,10 @@ class AuthService {
         const response = await axiosConfig.get('/user')
         return response.data
     }
+    allUsers = async() => {
+        const response = await axiosConfig.get('/allUsers')
+        return response.data
+    }
 }
 
 const authSvc = new AuthService;
