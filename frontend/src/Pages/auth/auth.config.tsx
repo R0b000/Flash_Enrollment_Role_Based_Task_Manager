@@ -20,3 +20,13 @@ export const RegisterDTO = yup.object({
     password: yup.string().required('Password is required').min(6),
     role: yup.string().oneOf([Role.ADMIN, Role.USER]).default(Role.USER)
 })
+
+export interface loginProps {
+    email: string, 
+    password: string
+}
+
+export const LoginDTO = yup.object({
+    email: yup.string().email().required('Email is required'),
+    password: yup.string().min(6).required('Password is required')
+})

@@ -125,7 +125,7 @@ class TaskController extends Controller
                 ]);
             }
 
-            if ($user->id === $data->user_id) {
+            if ($user->id === $data->user_id  || $user->role === 'admin') {
                 $body = $request->validate([
                     'title'=>'nullable|min:3',
                     'description'=> 'nullable|max:50',
